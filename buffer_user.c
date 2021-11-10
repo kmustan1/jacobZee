@@ -5,9 +5,9 @@
 #include <string.h>
 
 static ring_buffer_421_t buffer;
-static sem_t mutex;
-static sem_t fill_count;
-static sem_t empty_count;
+//static sem_t mutex;
+//static sem_t fill_count;
+//static sem_t empty_count;
 
 long init_buffer_421(void) {
 	// Note: You will need to initialize semaphores in this function.
@@ -34,7 +34,10 @@ long init_buffer_421(void) {
 	buffer.read = node;
 	buffer.write = node;
 	buffer.length = 0;
-
+	
+	sem_init(mutex, Pshared, 1);
+	sem_init(fill_count, Pshared, 0);
+	sem_init(empty_count, Pshared, 19);//start at 19 to make sure we have a negative value after 20 consecutive insertions
 	// Initialize your semaphores here.
 	// TODO
 
@@ -47,16 +50,33 @@ long enqueue_buffer_421(char * data) {
 		printf("write_buffer_421(): The buffer does not exist. Aborting.\n");
 		return -1;
 	}
+	sem_wait(empty_count);
 	memcpy(buffer.write->data, data, DATA_LENGTH);
 	// Advance the pointer.
 	buffer.write = buffer.write->next;
+	sem_post(fill_count);
+	
+	sem_wait(mutex);
 	buffer.length++;
+	sem_post(mutex);
 
 	return 0;
 }
 
 long dequeue_buffer_421(char * data) {
 	// NOTE: Implement this function.
+	if (!buffer.write) {
+		printf("write_buffer_421(): The buffer does not exist. Aborting.\n");
+		return -1;
+	}
+	sem_wait(fill_count);
+	memcpy(data, buffer.read->data, DATA_LENGTH);
+	buffer.read = buffer.read->next;
+	sem_post(empty_count);
+	
+	sem_wait(mutex);
+	//buffer.length--;
+	sme_wait(mutex);
 	return 0;
 }
 
