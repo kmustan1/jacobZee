@@ -48,7 +48,7 @@ long init_buffer_421(void) {
     // Initialize your semaphores here.
     // TODO
     sem_init(&mutex, 0, 1);
-    sem_init(&fill_count, 0, -1);//we should not dequeue if there in nothing filled
+    sem_init(&fill_count, 0, 0);//we should not dequeue if there in nothing filled
     sem_init(&empty_count, 0, 20);//start at 19 to make sure we have a negative value after 20 consecutive insertions
 
     return 0;
@@ -158,7 +158,9 @@ void *producer(void *arg){
 		//printf("%c\n",*data);
 		enqueue_buffer_421(data);
 		printf("insertion number %d\n",i);
+		sem_wait(&mutex);
 		print_semaphores();
+		sem_post(&mutex);
 		p++;
 		if (p>9) p = 0;
 	}
