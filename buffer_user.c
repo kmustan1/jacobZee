@@ -71,11 +71,11 @@ long enqueue_buffer_421(char * data) //Writes data to the current array slot -- 
     //Take produced item and put into array indices in node
     memcpy(buffer.write->data, data, DATA_LENGTH);
     buffer.write = buffer.write->next;
-
+    buffer.length++;
     //Signal consumer that producer is finished, increment fill count and buffer length
     sem_post(&mutex);
     sem_post(&fill_count);
-    buffer.length++;
+ 
 
     return 0;
 }
@@ -99,7 +99,7 @@ long dequeue_buffer_421(char * data) //Takes the data stored in an array slot an
     buffer.read = buffer.read->next;
     //char* temp = "";
     //*temp = *data;
-
+	    buffer.length--;
     //Signal that consumer is finished,
     sem_post(&mutex);
     sem_post(&empty_count);
@@ -107,9 +107,6 @@ long dequeue_buffer_421(char * data) //Takes the data stored in an array slot an
     //for(int i=0; i<DATA_LENGTH; i++)
     //printf("value of data at the end of dequeue function: %c\n", data[i]);
 
-    sem_wait(&mutex);
-    buffer.length--;
-    sem_post(&mutex);
     return 0;
 }
 
@@ -151,11 +148,15 @@ void print_semaphores(void) {
 }
 //producer thread fucntion
 void *producer(void *arg){
+	arg = arg;//so that we don;t get the warning that we never use them
 	char *data = (char*)malloc(sizeof(char)*DATA_LENGTH);
 	int p =0;
 	for (int i=0; i<20; i++){
-		*data = '0'+p;
+		//*data = '0'+p;
 		//printf("%c\n",*data);
+		int c = '0'+p;
+		memset(data, c, DATA_LENGTH);
+		data[1023] = '\0';//set the last index to null for printf later
 		enqueue_buffer_421(data);
 		printf("insertion number %d\n",i);
 		sem_wait(&mutex);
@@ -169,6 +170,8 @@ void *producer(void *arg){
 }
 //consumer thread function
 void *consumer(void *arg){
+	arg = arg;
+	
 	char *data = (char*)malloc(sizeof(char)*DATA_LENGTH);
 	for (int i =0; i<20;i++){
 		dequeue_buffer_421(data);
@@ -205,6 +208,8 @@ int main(){
 	
 	pthread_join(producerID, &thread_result);
 	pthread_join(consumerID, &thread_result);
+	
+	delete_buffer_421();
 	
 	return 0;
 }
