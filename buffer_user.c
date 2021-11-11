@@ -150,9 +150,8 @@ void print_semaphores(void) {
     printf("sem_t empty_count = %d\n", value);
 }
 //producer thread fucntion
-/*
 void *producer(void *arg){
-	char *data = (char*)malloc(sizeof(char)*1024);
+	char *data = (char*)malloc(sizeof(char)*DATA_LENGTH);
 	int p =0;
 	for (int i=0; i<20; i++){
 		*data = '0'+p;
@@ -163,20 +162,23 @@ void *producer(void *arg){
 		p++;
 		if (p>9) p = 0;
 	}
+	free(data);
 	return NULL;
 }
 //consumer thread function
 void *consumer(void *arg){
-	node_421_t *node = buffer.read;
+	char *data = (char*)malloc(sizeof(char)*DATA_LENGTH);
 	for (int i =0; i<20;i++){
-		printf("[%d]->%s\n",i, node->data);
-		node = node->next; 
+		dequeue_buffer_421(data);
+		printf("[%d]->%s\n",i, data);//i don't know why this is working
 	}
+	free(data);
 	return NULL;
 }
-*/
+
 int main(){
 	init_buffer_421();
+	/*
 	char *data = (char*)malloc(sizeof(char)*1024);
 	int p =0;
 	for (int i=0; i<20; i++){
@@ -192,7 +194,17 @@ int main(){
 		dequeue_buffer_421(data);
 		printf("[%d]->%s\n",i, data);//i don't know why this is working
 	}
-	enqueue_buffer_421(data);	
+	*/
+	pthread_t producerID, consumerID;
+	void *thread_result;
+	
+	pthread_create(&producerID, NULL, producer, NULL);
+	pthread_create(&consumerID, NULL, consumer, NULL);
+	
+	pthread_join(producerID, &thread_result);
+	pthread_join(consumerID, &thread_result);
+	
+	return 0;
 }
 
 
