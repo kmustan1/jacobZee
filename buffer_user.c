@@ -103,15 +103,10 @@ long dequeue_buffer_421(char * data) //Takes the data stored in an array slot an
 
     printf("%c", *data);
 
-    /*sem_wait(&fill_count);
-    memcpy(data, buffer.read->data, DATA_LENGTH);
-    buffer.read = buffer.read->next;
-    sem_post(&empty_count);
-
     sem_wait(&mutex);
-    //buffer.length--;
-    sem_wait(&mutex);
-    return 0;*/
+    buffer.length--;
+    sem_post(&mutex);
+    return 0;
 }
 
 long delete_buffer_421(void) {
