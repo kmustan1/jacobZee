@@ -5,9 +5,9 @@
 #include <string.h>
 
 static ring_buffer_421_t buffer;
-//static sem_t mutex;
-//static sem_t fill_count;
-//static sem_t empty_count;
+static sem_t mutex;
+static sem_t fill_count;
+static sem_t empty_count;
 
 long init_buffer_421(void) {
 	// Note: You will need to initialize semaphores in this function.
