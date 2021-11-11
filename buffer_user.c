@@ -3,6 +3,7 @@
 #include "buffer.h"
 
 #include <string.h>
+#include <pthread.h>
 
 static ring_buffer_421_t buffer;
 static sem_t mutex;
@@ -47,7 +48,7 @@ long init_buffer_421(void) {
     // Initialize your semaphores here.
     // TODO
     sem_init(&mutex, 0, 1);
-    sem_init(&fill_count, 0, 0);
+    sem_init(&fill_count, 0, -1);//we should not dequeue if there in nothing filled
     sem_init(&empty_count, 0, 20);//start at 19 to make sure we have a negative value after 20 consecutive insertions
 
     return 0;
@@ -86,22 +87,25 @@ long dequeue_buffer_421(char * data) //Takes the data stored in an array slot an
         printf("write_buffer_421(): The buffer does not exist. Aborting.\n");
         return -1;
     }
-
+    //printf("inside the dequeue function\n");
     //Signal that mutex is locked, decrement fill count
     sem_wait(&fill_count);
     sem_wait(&mutex);
 
     //Remove item from buffer, store value in temp variable
+    //printf("attempting to copy, value of read->data: %c\n", buffer.read->data);
     memcpy(data, buffer.read->data, DATA_LENGTH);
+    //printf("data after copying read->data into it: %c\n", data);
     buffer.read = buffer.read->next;
-    char* temp = "";
-    *temp = *data;
+    //char* temp = "";
+    //*temp = *data;
 
     //Signal that consumer is finished,
     sem_post(&mutex);
     sem_post(&empty_count);
-
-    printf("%c", *data);
+    
+    //for(int i=0; i<DATA_LENGTH; i++)
+    //printf("value of data at the end of dequeue function: %c\n", data[i]);
 
     sem_wait(&mutex);
     buffer.length--;
@@ -145,7 +149,32 @@ void print_semaphores(void) {
     sem_getvalue(&empty_count, &value);
     printf("sem_t empty_count = %d\n", value);
 }
-
+//producer thread fucntion
+/*
+void *producer(void *arg){
+	char *data = (char*)malloc(sizeof(char)*1024);
+	int p =0;
+	for (int i=0; i<20; i++){
+		*data = '0'+p;
+		//printf("%c\n",*data);
+		enqueue_buffer_421(data);
+		printf("insertion number %d\n",i);
+		print_semaphores();
+		p++;
+		if (p>9) p = 0;
+	}
+	return NULL;
+}
+//consumer thread function
+void *consumer(void *arg){
+	node_421_t *node = buffer.read;
+	for (int i =0; i<20;i++){
+		printf("[%d]->%s\n",i, node->data);
+		node = node->next; 
+	}
+	return NULL;
+}
+*/
 int main(){
 	init_buffer_421();
 	char *data = (char*)malloc(sizeof(char)*1024);
@@ -154,14 +183,14 @@ int main(){
 		*data = '0'+p;
 		//printf("%c\n",*data);
 		enqueue_buffer_421(data);
+		printf("insertion number %d\n",i);
 		print_semaphores();
 		p++;
 		if (p>9) p = 0;
 	}
-	node_421_t *node = buffer.read;
 	for (int i =0; i<20;i++){
-		printf("[%d]->%s\n",i, node->data);
-		node = node->next; 
+		dequeue_buffer_421(data);
+		printf("[%d]->%s\n",i, data);//i don't know why this is working
 	}
 	enqueue_buffer_421(data);	
 }

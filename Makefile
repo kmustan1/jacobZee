@@ -6,7 +6,7 @@ BIN = buffer_user
 
 # Compiler flags to pass to the system's C compiler while building
 # the source files
-CFLAGS = -g -Wall -Wextra -pedantic -std=gnu11
+CFLAGS = -g -Wall -Wextra -pedantic -std=gnu11 -pthread
 
 # Flags to pass to the linker while linking your program
 # You shouldn't need to change this at all.
