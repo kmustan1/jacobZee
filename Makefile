@@ -10,7 +10,7 @@ CFLAGS = -g -Wall -Wextra -pedantic -std=gnu11
 
 # Flags to pass to the linker while linking your program
 # You shouldn't need to change this at all.
-LDFLAGS = -g
+LDFLAGS = -g -lpthread -lrt
 
 ###################################################################
 # You shouldn't need to touch anything below this line...         #

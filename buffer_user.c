@@ -48,7 +48,7 @@ long init_buffer_421(void) {
     // TODO
     sem_init(&mutex, 0, 1);
     sem_init(&fill_count, 0, 0);
-    sem_init(&empty_count, 0, 19);//start at 19 to make sure we have a negative value after 20 consecutive insertions
+    sem_init(&empty_count, 0, 20);//start at 19 to make sure we have a negative value after 20 consecutive insertions
 
     return 0;
 }
@@ -146,9 +146,24 @@ void print_semaphores(void) {
     printf("sem_t empty_count = %d\n", value);
 }
 
-int main()
-{
-    init_buffer_421();
-    char *data = (char*)malloc(sizeof(char));
-
+int main(){
+	init_buffer_421();
+	char *data = (char*)malloc(sizeof(char)*1024);
+	int p =0;
+	for (int i=0; i<20; i++){
+		*data = '0'+p;
+		//printf("%c\n",*data);
+		enqueue_buffer_421(data);
+		print_semaphores();
+		p++;
+		if (p>9) p = 0;
+	}
+	node_421_t *node = buffer.read;
+	for (int i =0; i<20;i++){
+		printf("[%d]->%s\n",i, node->data);
+		node = node->next; 
+	}
+	enqueue_buffer_421(data);	
 }
+
+
