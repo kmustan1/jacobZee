@@ -1,0 +1,35 @@
+# CMSC421 Project 3
+## Class Section: Larson M/W 10:00am - 11:15am
+### Group Members: Jacob Enoch & Khuzaima Mustanzir
+
+#### Instructions
+* Make xconfig before compiling
+* After compilation, install image 
+* All implementations found in buffer directory
+* Userspace directory within buffer (buffer/userspace) has user space implementation
+
+* To run kernel space test: 
+```
+gcc test.c -o test -lpthread -lrt
+./test  //Runs test file
+```
+*To run user space test:
+```
+gcc test.c -o test -lpthread -lrt
+./test
+```
+
+#### Implementation Details #### 
+
+* The first thing we had to tackle was finishing the incomplete buffer functions (mostly dequeue). This was trivial as we did this exact thing for our last project when we created our own buffers.
+
+* Next, the challenge was to implement semaphores in our code so mutual exclusion could be guaranteed between the two threads that would be running. This was probably the most challenging part of the project - reading about semaphores in a book and implementing them are two completely different things. We first had to read the documentation for the semaphore library we were using - semaphore.h to be specific. After reading up we began 
+trying to initialize the three semaphores we would be using (relatively simple). After we tested and fixed our initialization we began discussing how and where to lock/unlock the mutex and increment/decrement the counting semaphores. After some tinkering around and looking at semaphore examples online we managed to get our semaphores running correctly. 
+
+* Creating the producer/consumer in the test.c file was very straight-forward as well. The producer should initialize the buffer when it is called. For either the producer or consumer a 100,000 iteration loop will run which will either "produce" an item and place it into the buffer or "consume" an item and remove/print it from the buffer. A randomly decided wait of 0-10ms will occur between iterations. We may have overthought the randomness of the waits but we wanted to be thorough. After some research rand() isn't as random as it seems, especially with threads. I found a good way to ensure randomness between the seeds for srand() and provided a source in the comments. 
+
+* Finally, the main function in our test file had to create two threads, let them run concurrently, and then ensure that they join and terminate after they finish running. This was done by creating the threads that run only enqueue/dequeue respectively and then having them join after running. 
+
+* Converting from user space to kernel was a little more involved than project 2 but it wasn't too hard. We began with the easy stuff (free to freek, malloc to kmalloc, etc) and then looked at the documentation for kernel semaphores. Instead of sem_t, kernel uses semaphore structs. We converted our sema_init calls to sem_init and all of our wait/post calls to down/up respectively. The test file for our kernel remained relatively the same with the only changes being that system calls are used rather than functions. 
+
+* We ran into a small issue near the end where we had our producer function initializing the buffer when it was called but this could result in more __actual__ enqueues than dequeues if consumer is called before producer. We had more items produced than consumed at the end of our test runs initially. This was fixed by transferring the initialization to main rather than producer. It is unclear what the wording on the rubric for "Producer creates buffer" means but having producer initialize the buffer caused some clear issues. 
